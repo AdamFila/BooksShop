@@ -112,11 +112,30 @@
             </RelativeLayout>
 
             <!--  Quantity field -->
-            <EditText
-                android:id="@+id/edit_book_quantity"
-                android:hint="@string/hint_book_quantity"
-                android:inputType="number"
-                style="@style/EditorFieldStyle" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/button_minus"
+                    android:layout_width="64dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/minus"/>
+
+                <Button
+                    android:id="@+id/button_plus"
+                    android:layout_width="64dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/plus"/>
+
+                <EditText
+                    android:id="@+id/edit_book_quantity"
+                    android:hint="@string/hint_book_quantity"
+                    android:inputType="number"
+                    style="@style/EditorFieldStyle" />
+
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
@@ -152,6 +171,12 @@
                 android:hint="@string/hint_book_supplier_phone_number"
                 android:inputType="textCapWords"
                 style="@style/EditorFieldStyle" />
+
+            <Button
+                android:id="@+id/button_call"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/call_me"/>
 
         </LinearLayout>
     </LinearLayout>

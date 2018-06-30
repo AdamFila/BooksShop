@@ -20,6 +20,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -78,6 +79,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         }
     };
 
+    private int quantity;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,6 +114,10 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mSupplierNameEditText = (EditText) findViewById(R.id.edit_book_supplier_name);
         mSupplierPhoneNumberEditText = (EditText) findViewById(R.id.edit_book_supplier_phone_number);
 
+        Button quantityMinus = (Button) findViewById(R.id.button_minus);
+        Button quantityPlus = (Button) findViewById(R.id.button_plus);
+        Button callButton = (Button) findViewById(R.id.button_call);
+
         mNameEditText.setOnTouchListener(mTouchListener);
         mAuthorEditText.setOnTouchListener(mTouchListener);
         mTypeSpinner.setOnTouchListener(mTouchListener);
@@ -119,8 +126,61 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mSupplierNameEditText.setOnTouchListener(mTouchListener);
         mSupplierPhoneNumberEditText.setOnTouchListener(mTouchListener);
 
-        setupSpinner();
+        quantityMinus.setOnTouchListener(mTouchListener);
+        quantityPlus.setOnTouchListener(mTouchListener);
+        callButton.setOnTouchListener(mTouchListener);
 
+        quantityMinus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String quantityString = mQuantityEditText.getText().toString();
+                if (TextUtils.isEmpty(quantityString)) {
+                    Toast.makeText(EditorActivity.this, "Quantity can not be empty", Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    quantity = Integer.parseInt(quantityString);
+                    //To validate if quantity is greater than 0
+                    if ((quantity - 1) >= 0) {
+                        mQuantityEditText.setText(String.valueOf(quantity - 1));
+                    } else {
+                        Toast.makeText(EditorActivity.this, "Quantity can not get below 0", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+            }
+        });
+
+        quantityPlus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String quantityString = mQuantityEditText.getText().toString();
+                if (TextUtils.isEmpty(quantityString)) {
+                    Toast.makeText(EditorActivity.this, "Quantity can not be empty", Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    quantity = Integer.parseInt(quantityString);
+                    mQuantityEditText.setText(String.valueOf(quantity + 1));
+                }
+            }
+        });
+
+        callButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String supplierPhoneNumber = mSupplierPhoneNumberEditText.getText().toString().trim();
+                makeACall(supplierPhoneNumber);
+            }
+        });
+        
+        setupSpinner();
+    }
+
+    private void makeACall(String supplierPhoneNumber) {
+        Intent intent = new Intent(Intent.ACTION_DIAL);
+        intent.setData(Uri.parse("tel:" + supplierPhoneNumber));
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        }
     }
 
     private void setupSpinner(){
