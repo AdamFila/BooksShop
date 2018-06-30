@@ -1,15 +1,23 @@
 package com.example.android.booksshop;
 
+import android.app.LoaderManager;
+import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.android.booksshop.data.BookContract;
@@ -17,9 +25,11 @@ import com.example.android.booksshop.data.BookDbHelper;
 
 import static com.example.android.booksshop.data.BookContract.*;
 
-public class CatalogActivity extends AppCompatActivity {
+public class CatalogActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
-    private BookDbHelper mDbHelper;
+    private static final int BOOK_LOADER = 0;
+
+    BookCursorAdapter mCursorAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,102 +46,85 @@ public class CatalogActivity extends AppCompatActivity {
             }
         });
 
-        mDbHelper = new BookDbHelper(this);
-    }
+        // Find the ListView which will be populated with the book data
+        ListView bookListView = (ListView) findViewById(R.id.list);
 
-    @Override
-    protected  void onStart(){
-        super.onStart();
-        displayDatabaseInfo();
-    }
+        // Find and set empty view on the ListView, so that it only shows when the list has 0 items.
+        View emptyView = findViewById(R.id.empty_view);
+        bookListView.setEmptyView(emptyView);
 
-    private void displayDatabaseInfo(){
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+        //Set Adapter
+        mCursorAdapter = new BookCursorAdapter(this, null);
+        bookListView.setAdapter(mCursorAdapter);
 
-        String[] projection = {
-                BookEntry._ID,
-                BookEntry.COLUMN_BOOK_NAME,
-                BookEntry.COLUMN_BOOK_AUTHOR,
-                BookEntry.COLUMN_BOOK_TYPE,
-                BookEntry.COLUMN_BOOK_PRICE,
-                BookEntry.COLUMN_BOOK_QUANTITY,
-                BookEntry.COLUMN_BOOK_SUPPLIER_NAME,
-                BookEntry.COLUMN_BOOK_SUPPLIER_PHONE_NUMBER
-        };
+        // Setup the item click listener
+        bookListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                // Create new intent to go to {@link EditorActivity}
+                Intent intent = new Intent(CatalogActivity.this, EditorActivity.class);
 
-        Cursor cursor = db.query(
-                BookEntry.TABLE_NAME,
-                projection,
-                null,
-                null,
-                null,
-                null,
-                null
-        );
+                Uri currentBookUri = ContentUris.withAppendedId(BookEntry.CONTENT_URI, id);
 
-        TextView displayView = (TextView) findViewById(R.id.text_view_pet);
+                // Set the URI on the data field of the intent
+                intent.setData(currentBookUri);
 
-        try{
-
-            displayView.setText("The books table contains: " + cursor.getCount() + " books.\n\n");
-            displayView.append(BookEntry._ID + " - " +
-                    BookEntry.COLUMN_BOOK_NAME + " - " +
-                    BookEntry.COLUMN_BOOK_AUTHOR + " - " +
-                    BookEntry.COLUMN_BOOK_TYPE + " - " +
-                    BookEntry.COLUMN_BOOK_PRICE + " - " +
-                    BookEntry.COLUMN_BOOK_QUANTITY + " - " +
-                    BookEntry.COLUMN_BOOK_SUPPLIER_NAME + " - " +
-                    BookEntry.COLUMN_BOOK_SUPPLIER_PHONE_NUMBER + "\n");
-
-            int idColumnIndex = cursor.getColumnIndex(BookEntry._ID);
-            int nameColumnIndex = cursor.getColumnIndex(BookEntry.COLUMN_BOOK_NAME);
-            int authorColumnIndex = cursor.getColumnIndex(BookEntry.COLUMN_BOOK_AUTHOR);
-            int typeColumnIndex = cursor.getColumnIndex(BookEntry.COLUMN_BOOK_TYPE);
-            int priceColumnIndex = cursor.getColumnIndex(BookEntry.COLUMN_BOOK_PRICE);
-            int quantityColumnIndex = cursor.getColumnIndex(BookEntry.COLUMN_BOOK_QUANTITY);
-            int supplierNameColumnIndex = cursor.getColumnIndex(BookEntry.COLUMN_BOOK_SUPPLIER_NAME);
-            int supplierPhoneNumberColumnIndex = cursor.getColumnIndex(BookEntry.COLUMN_BOOK_SUPPLIER_PHONE_NUMBER);
-
-            while(cursor.moveToNext()){
-
-                int currentID = cursor.getInt(idColumnIndex);
-                String currentName = cursor.getString(nameColumnIndex);
-                String currentAuthor = cursor.getString(authorColumnIndex);
-                int currentType = cursor.getInt(typeColumnIndex);
-                int currentPrice = cursor.getInt(priceColumnIndex);
-                int currentQuantity = cursor.getInt(quantityColumnIndex);
-                String currentSupplierName = cursor.getString(supplierNameColumnIndex);
-                String currentSupplierPhoneNumber = cursor.getString(supplierPhoneNumberColumnIndex);
-
-                displayView.append("\n" + currentID + " - " +
-                        currentName + " - " +
-                        currentAuthor + " - " +
-                        currentType + " - " +
-                        currentPrice + " - " +
-                        currentQuantity + " - " +
-                        currentSupplierName + " - " +
-                        currentSupplierPhoneNumber);
+                // Launch the {@link EditorActivity} to display the data for the current book.
+                startActivity(intent);
             }
+        });
 
-        } finally {
-            cursor.close();
-        }
+        getLoaderManager().initLoader(BOOK_LOADER,null, this);
     }
-
 
     private void insertBook(){
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(BookEntry.COLUMN_BOOK_NAME, "To");
+        values.put(BookEntry.COLUMN_BOOK_NAME, "Shining");
         values.put(BookEntry.COLUMN_BOOK_AUTHOR, "Stephen King");
         values.put(BookEntry.COLUMN_BOOK_TYPE, BookEntry.TYPE_HORROR);
         values.put(BookEntry.COLUMN_BOOK_PRICE, 39);
         values.put(BookEntry.COLUMN_BOOK_QUANTITY, 6);
         values.put(BookEntry.COLUMN_BOOK_SUPPLIER_NAME, "Bird");
-        values.put(BookEntry.COLUMN_BOOK_SUPPLIER_PHONE_NUMBER, "452-562-892");
+        values.put(BookEntry.COLUMN_BOOK_SUPPLIER_PHONE_NUMBER, "452562892");
 
-        long newRowId = db.insert(BookEntry.TABLE_NAME, null, values);
+        Uri newUri = getContentResolver().insert(BookEntry.CONTENT_URI, values);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        String[] projection = {
+                BookEntry._ID,
+                BookEntry.COLUMN_BOOK_NAME,
+                BookEntry.COLUMN_BOOK_PRICE,
+                BookEntry.COLUMN_BOOK_QUANTITY
+        };
+
+        return new CursorLoader(this,
+                BookEntry.CONTENT_URI,
+                projection,
+                null,
+                null,
+                null
+        );
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mCursorAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mCursorAdapter.swapCursor(null);
+    }
+
+    /**
+     * Helper method to delete all books in the database.
+     */
+    private void deleteAllBooks() {
+        int rowsDeleted = getContentResolver().delete(BookEntry.CONTENT_URI, null, null);
+        Log.v("CatalogActivity", rowsDeleted + " rows deleted from pet database");
     }
 
     @Override
@@ -149,11 +142,10 @@ public class CatalogActivity extends AppCompatActivity {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
                 insertBook();
-                displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
-                // Do nothing for now
+                deleteAllBooks();
                 return true;
         }
         return super.onOptionsItemSelected(item);
