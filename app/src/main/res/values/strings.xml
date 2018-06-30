@@ -36,4 +36,7 @@
     <string name="type_drama">Drama</string>
     <string name="type_horror">Horror</string>
 
+        <!-- LIST ITEM -->
+    <string name="unknown_type">Unknown type</string>
+
 </resources>
