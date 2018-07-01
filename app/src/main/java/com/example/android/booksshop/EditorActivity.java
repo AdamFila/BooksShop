@@ -244,6 +244,20 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             return;
         }
 
+        //VALIDATE
+        if (TextUtils.isEmpty(nameString)) { Toast.makeText(this, (getString(R.string.validate_book_name)),
+                Toast.LENGTH_SHORT).show(); return;}
+        if (TextUtils.isEmpty(authorString)) { Toast.makeText(this, (getString(R.string.validate_book_author)),
+                Toast.LENGTH_SHORT).show(); return;}
+        if (TextUtils.isEmpty(priceString)) {Toast.makeText(this, (getString(R.string.validate_book_price)),
+                Toast.LENGTH_SHORT).show(); return;}
+        if (TextUtils.isEmpty(quantityString)) { Toast.makeText(this, (getString(R.string.validate_book_quantity)),
+                Toast.LENGTH_SHORT).show(); return;}
+        if (TextUtils.isEmpty(supplierNameString)) { Toast.makeText(this, (getString(R.string.validate_book_supplier_name)),
+                Toast.LENGTH_SHORT).show(); return;}
+        if (TextUtils.isEmpty(supplierPhoneNumberString)) { Toast.makeText(this, (getString(R.string.validate_book_supplier_phone_number)),
+                Toast.LENGTH_SHORT).show(); return;}
+
         ContentValues values = new ContentValues();
         values.put(BookEntry.COLUMN_BOOK_NAME, nameString);
         values.put(BookEntry.COLUMN_BOOK_AUTHOR, authorString);
